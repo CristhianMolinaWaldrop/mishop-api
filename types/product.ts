@@ -75,12 +75,8 @@ export const GetProductsQuery = queryField('getProducts', {
           { createdAt: args.order, },
         ],
         include: {
-          shop: {
-            include: {
-              deliveryMethods: true,
-              products: true,
-            }
-          }
+          images: true,
+          shop: true
         }
       }),
     ])
