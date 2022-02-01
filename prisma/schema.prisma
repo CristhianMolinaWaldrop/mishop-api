@@ -127,6 +127,7 @@ model Product {
   categories Category[] @relation("category_to_product")
 
   hasVariants Boolean
+  visible Boolean @default(true)
   variants    Json[]
 
   price            Float

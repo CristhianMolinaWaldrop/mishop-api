@@ -12,6 +12,7 @@ export const Product = objectType({
     t.nonNull.field('shop', { type: ShopAccount })
     t.list.nonNull.field('images', { type: ImageAttachment })
     t.nonNull.boolean('hasVariants')
+    t.nonNull.boolean('visible')
     t.list.nonNull.jsonObject('variants')
     t.nonNull.float('price')
     t.nonNull.int('priority')
@@ -36,6 +37,7 @@ export const ProductInput = inputObjectType({
     t.int('stock')
     t.int('min')
     t.int('priority')
+    t.boolean('visible')
   },
 })
 
