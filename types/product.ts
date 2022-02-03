@@ -1,5 +1,5 @@
 import { pageObjectType } from '@/lib/utils'
-import { inputObjectType, intArg, nonNull, objectType, queryField, stringArg, mutationField, list, enumType, arg } from 'nexus'
+import { inputObjectType, intArg, nonNull, objectType, queryField, stringArg, mutationField, list, arg, booleanArg } from 'nexus'
 import { ImageAttachment, ImageAttachmentInput, OrderEnum } from './common'
 import { ShopAccount } from './shop'
 import { DeliveryMethod, Product as DProduct, ShopAccount as DShopAccount, ImageAttachment as DImageAttachment } from '@prisma/client'
@@ -9,6 +9,7 @@ export const Product = objectType({
   definition(t) {
     t.nonNull.string('id')
     t.nonNull.nonEmptyString('name')
+    t.string('description')
     t.nonNull.field('shop', { type: ShopAccount })
     t.list.nonNull.field('images', { type: ImageAttachment })
     t.nonNull.boolean('hasVariants')
@@ -30,6 +31,7 @@ export const ProductInput = inputObjectType({
   definition(t) {
     t.string('id')
     t.nonEmptyString('name')
+    t.string('description')
     t.list.field('images', { type: ImageAttachmentInput })
     t.list.jsonObject('variants')
     t.float('price')
@@ -47,12 +49,12 @@ export const GetProductsQuery = queryField('getProducts', {
     skip: intArg({ description: 'Skip the first N number of products', default: 0 }),
     take: intArg({ description: 'Take +N products from the current position of cursor', default: 10 }),
     shopId: stringArg({ description: 'Shop id' }),
+    visible: booleanArg({ description: 'If is not defined, active and visible are no visible listed' }),
     shopSlug: stringArg({ description: 'Shop slug' }),
     order: arg({
       type: OrderEnum,
       default: 'desc',
     })
-    // active: booleanArg({ description: 'If is not defined, active and inactive are listed' }),
   },
   resolve: async (_parent, args, ctx) => {
     let shopId = args.shopId
@@ -61,6 +63,7 @@ export const GetProductsQuery = queryField('getProducts', {
     }
     const where = {
       shopId,
+      visible: args.visible ?? undefined,
       shop: {
         id: shopId ?? undefined,
         slug: args.shopSlug ?? undefined,
@@ -145,6 +148,7 @@ export const UpsertProductsMutation = mutationField('upsertProducts', {
         data: {
           shopId: shop.id,
           name: p.name || '',
+          description: p.description || undefined,
           price: p.price || 0,
           promotionalPrice: p.promotionalPrice,
           hasVariants: Boolean(p.variants?.length),

@@ -12,8 +12,8 @@ export const getDeliveryMethods = async (args: QueryArgs['getDeliveryMethods'], 
   }
   return await ctx.prisma.deliveryMethod.findMany({
     where: {
-      id: args.id ?? undefined,
       active: args.active ?? undefined,
+      deleted: args.deleted ?? undefined,
       shopId,
       shop: {
         id: args.shopId ?? undefined,

@@ -123,11 +123,12 @@ model Product {
 
   images ImageAttachment[] @relation("product_image")
 
-  name       String
-  categories Category[] @relation("category_to_product")
+  name        String
+  description String?
+  categories  Category[] @relation("category_to_product")
 
   hasVariants Boolean
-  visible Boolean @default(true)
+  visible     Boolean @default(true)
   variants    Json[]
 
   price            Float
@@ -184,6 +185,7 @@ model DeliveryMethod {
   description            String?
   price                  Float
   active                 Boolean             @default(true)
+  deleted                Boolean             @default(false)
   admitCash              Boolean             @default(false)
   requestDirection       Boolean             @default(false)
   specificPaymentMethods PaymentMethodType[]

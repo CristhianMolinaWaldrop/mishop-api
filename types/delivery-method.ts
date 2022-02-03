@@ -1,5 +1,5 @@
 import { getDeliveryMethod, getDeliveryMethods, upsertDeliveryMethods } from '@/resolvers/delivery-method'
-import { booleanArg, inputObjectType, intArg, list, mutationField, nonNull, objectType, queryField, stringArg } from 'nexus'
+import { booleanArg, inputObjectType, list, mutationField, nonNull, objectType, queryField, stringArg } from 'nexus'
 import { PaymentMethodEnum } from './common'
 
 export const DeliveryMethod = objectType({
@@ -13,6 +13,7 @@ export const DeliveryMethod = objectType({
     t.nonNull.boolean('requestDirection')
     t.nonNull.list.field('specificPaymentMethods', { type: PaymentMethodEnum })
     t.nonNull.boolean('active')
+    t.nonNull.boolean('deleted')
   },
 })
 
@@ -27,16 +28,17 @@ export const DeliveryMethodInput = inputObjectType({
     t.boolean('requestDirection')
     t.list.field('specificPaymentMethods', { type: PaymentMethodEnum })
     t.boolean('active')
+    t.boolean('deleted')
   },
 })
 
 export const DeliveryMethodsQuery = queryField('getDeliveryMethods', {
   type: list(DeliveryMethod),
   args: {
-    id: stringArg({ description: 'Delivery method id' }),
     shopId: stringArg({ description: 'Shop id' }),
     shopSlug: stringArg({ description: 'Shop slug' }),
     active: booleanArg({ description: 'If is not defined, active and inactive are listed' }),
+    deleted: booleanArg({ description: 'If is not defined, deleted and no deleted are listed' }),
   },
   resolve: (_parent, args, ctx) => getDeliveryMethods(args, ctx)
 })
