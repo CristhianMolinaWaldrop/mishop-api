@@ -6,15 +6,15 @@ type QueryArgs = NexusGenArgTypes['Query']
 type MutationArgs = NexusGenArgTypes['Mutation']
 
 export const getDeliveryMethods = async (args: QueryArgs['getDeliveryMethods'], ctx: Context) => {
-  let shopId: number
-  if (!args.shopSlug) {
-    shopId = ctx.getUser()?.shop?.id
-  }
+  // let shopId
+  // if (!args.shopSlug) {
+  //   shopId = ctx.getUser()?.shop?.id
+  // }
   return await ctx.prisma.deliveryMethod.findMany({
     where: {
       active: args.active ?? undefined,
       deleted: args.deleted ?? undefined,
-      shopId,
+      shopId: args.shopId ?? undefined,
       shop: {
         id: args.shopId ?? undefined,
         slug: args.shopSlug ?? undefined,
