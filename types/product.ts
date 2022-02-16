@@ -367,8 +367,7 @@ export const GetCategoriesQuerys = queryField('getCategories', {
       shopId = ctx.getUser().shop?.id;
       shopSlug = ctx.getUser().shop?.slug
     }
-    const categories = await ctx.prisma.$transaction([
-      ctx.prisma.category.findMany({
+    const categories = await ctx.prisma.category.findMany({
         skip: args.skip,
         take: args.take,
         orderBy: [{ createdAt: args.order, }],
@@ -390,10 +389,9 @@ export const GetCategoriesQuerys = queryField('getCategories', {
             }
           }
         }
-      }),
-    ])
+      })
     return {
-      items: categories[0],
+      items: categories,
     }
   }
 });
