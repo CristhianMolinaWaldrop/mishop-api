@@ -383,6 +383,12 @@ export const GetCategoriesQuerys = queryField('getCategories', {
         },
         include: {
           products: {
+            where: {
+              shop: {
+                id: shopId,
+                slug: shopSlug
+              }
+            },
             include: {
               shop: true,
               images: true
