@@ -2,7 +2,7 @@ import { pageObjectType } from '@/lib/utils'
 import { inputObjectType, intArg, nonNull, objectType, queryField, stringArg, mutationField, list, arg, booleanArg } from 'nexus'
 import { ImageAttachment, ImageAttachmentInput, OrderEnum } from './common'
 import { ShopAccount } from './shop'
-import { DeliveryMethod, Product as DProduct, ShopAccount as DShopAccount, ImageAttachment as DImageAttachment } from '@prisma/client'
+import { DeliveryMethod, Product as DProduct, ShopAccount as DShopAccount, ImageAttachment as DImageAttachment, Category as DCategory } from '@prisma/client'
 
 export const Product = objectType({
   name: 'Product',
@@ -10,6 +10,7 @@ export const Product = objectType({
     t.nonNull.string('id')
     t.nonNull.nonEmptyString('name')
     t.string('description')
+    t.list.nonNull.field('categories', {type: Category})
     t.nonNull.field('shop', { type: ShopAccount })
     t.list.nonNull.field('images', { type: ImageAttachment })
     t.nonNull.boolean('hasVariants')
@@ -33,6 +34,7 @@ export const ProductInput = inputObjectType({
     t.nonEmptyString('name')
     t.string('description')
     t.list.field('images', { type: ImageAttachmentInput })
+    t.list.field('categories', {type: CategoryInput})
     t.list.jsonObject('variants')
     t.float('price')
     t.float('promotionalPrice')
@@ -40,6 +42,27 @@ export const ProductInput = inputObjectType({
     t.int('min')
     t.int('priority')
     t.boolean('visible')
+  },
+})
+
+export const Category = objectType({
+  name: 'Category',
+  definition(t) {
+    t.nonNull.string('id')
+    t.nonEmptyString('name')
+    t.nonEmptyString('slug')
+    t.list.field('products', { type: Product})
+    t.nonNull.date('createdAt')
+  },
+})
+export const CategoryPage = pageObjectType('CategoryPage', Category)
+
+export const CategoryInput = inputObjectType({
+  name: 'CategoryInput',
+  definition(t) {
+    t.int('id')
+    t.nonEmptyString('name')
+    t.nonEmptyString('slug')
   },
 })
 
@@ -81,6 +104,7 @@ export const GetProductsQuery = queryField('getProducts', {
         ],
         include: {
           images: true,
+          categories: true,
           shop: true
         }
       }),
@@ -101,6 +125,7 @@ export const GetProductQuery = queryField('getProduct', {
     where: { id: args.id },
     include: {
       images: true,
+      categories: true,
       shop: {
         include: {
           deliveryMethods: true,
@@ -112,6 +137,7 @@ export const GetProductQuery = queryField('getProduct', {
 })
 
 type ProductComplete = DProduct & {
+  categories: DCategory[]
   images: DImageAttachment[]
   shop: DShopAccount & {
     logo: DImageAttachment
@@ -128,16 +154,16 @@ export const UpsertProductsMutation = mutationField('upsertProducts', {
     const shop = ctx.getUser().shop
 
     const data = args.data.filter(d => Object.keys(d).length)
-
     const toCreate = data.filter(d => d.id === null || typeof d.id === 'undefined')
     const toUpdate = data.filter(d => d.id)
 
-    let [created, updated]: [ProductComplete[], ProductComplete[]] = [[], []]
+    let [created, updated, createdInitial]: [any, any, ProductComplete[]] = [[], [], []]
 
     if (toCreate?.length) {
-      created = await ctx.prisma.$transaction(toCreate.map(p => ctx.prisma.product.create({
+      createdInitial = await ctx.prisma.$transaction(toCreate.map(p => ctx.prisma.product.create({
         include: {
           images: true,
+          categories: true,
           shop: {
             include: {
               deliveryMethods: true,
@@ -164,37 +190,88 @@ export const UpsertProductsMutation = mutationField('upsertProducts', {
                 thumbnail: i.thumbnail || '',
               }))
             }
-          } : undefined
+          } : undefined,
         }
-      })))
+      })));
+
+      created = await toCreate.map( async (product, ind) => {
+        
+        if (product.categories){
+          let categoryUniquesPromise = product.categories.map( async category => {
+            let valueCategory = ctx.prisma.category.findUnique({
+              where: {
+                slug: category.slug
+              },
+            });
+            return valueCategory;
+          });
+  
+          const categoryUniques = await Promise.all(categoryUniquesPromise);
+
+          let createdCategory = await ctx.prisma.$transaction(product.categories.map((p, index) => {
+
+            return ctx.prisma.product.update({
+              where: {
+                id: createdInitial[ind].id,
+              },
+              include: {
+                images: true,
+                categories: true,
+                shop: {
+                  include: {
+                    deliveryMethods: true,
+                    logo: true,
+                  }
+                }
+              },
+              data: {
+                categories: !categoryUniques[index] ? { create: {name: p.name, slug: p.slug} } :
+                { connect: {slug: p.slug } },
+              }
+            });
+          }));
+          return createdCategory[createdCategory.length - 1];
+        } else {
+          return createdInitial[ind];
+        }
+      })
     }
 
     if (toUpdate?.length) {
-      const [model] = await ctx.prisma.$transaction(toUpdate.map(p => ctx.prisma.shopAccount.update({
-        where: {
-          id: shop.id,
-        },
-        select: {
-          products: {
-            include: {
-              images: true,
-              shop: {
-                include: {
-                  deliveryMethods: true,
-                  logo: true,
-                }
-              }
-            }
-          }
-        },
-        data: {
-          products: {
-            update: {
+      updated = await toUpdate.map(async p => {
+        if(p.categories) {
+
+          let categoryUniquesPromise = p.categories?.map( async category => {
+            let valueCategory = ctx.prisma.category.findUnique({
+              where: {
+                slug: category.slug
+              },
+            });
+            return valueCategory;
+          });
+  
+          const categoryUniques = await Promise.all(categoryUniquesPromise);
+  
+          let createdCategory = await ctx.prisma.$transaction(p.categories.map((category, index) => {
+  
+            return ctx.prisma.product.update({
               where: {
                 id: p.id,
               },
+              include: {
+                images: true,
+                categories: true,
+                shop: {
+                  include: {
+                    deliveryMethods: true,
+                    logo: true,
+                  }
+                }
+              },
               data: {
                 ...p,
+                categories: !categoryUniques[index] ? { create: {name: category.name, slug: category.slug} } :
+                { connect: {slug: category.slug } },
                 images: p.images ? {
                   deleteMany: {},
                   createMany: {
@@ -205,15 +282,118 @@ export const UpsertProductsMutation = mutationField('upsertProducts', {
                     }))
                   }
                 } : undefined
-              },
+              }
+            });
+          }));
+          return createdCategory[createdCategory.length - 1];
+        } else {
+
+          return ctx.prisma.product.update({
+            where: {
+              id: p.id,
+            },
+            include: {
+              images: true,
+              categories: true,
+              shop: {
+                include: {
+                  deliveryMethods: true,
+                  logo: true,
+                }
+              }
+            },
+            data: {
+              ...p,
+              categories: undefined,
+              images: p.images ? {
+                deleteMany: {},
+                createMany: {
+                  data: p.images.map(i => ({
+                    original: i.original || '',
+                    normal: i.normal || '',
+                    thumbnail: i.thumbnail || '',
+                  }))
+                }
+              } : undefined
             }
-          }
+          });
         }
-      })))
-      const ids = toUpdate.map(d => d.id)
-      updated = model.products.filter(d => ids.includes(d.id))
+      });
     }
 
     return [...created, ...updated]
   }
 })
+
+
+export const GetCategoryQuery = queryField('getCategory', {
+  type: Category,
+  args: {
+    slug: stringArg({ description: 'Category Slug' }),
+  },
+  resolve: async (_parent, args, ctx) => {
+    return ctx.prisma.category.findUnique({
+      where: { 
+        slug: args.slug || undefined
+      },
+      include: {
+        products: {
+          include: {
+            shop: true,
+            images: true
+          }
+        }
+      }
+    })
+  }
+});
+
+export const GetCategoriesQuerys = queryField('getCategories', {
+  type: CategoryPage,
+  args: {
+    skip: intArg({ description: 'Skip the first N number of products', default: 0 }),
+    take: intArg({ description: 'Take +N products from the current position of cursor', default: 10 }),
+    shopId: stringArg({ description: 'Shop id' }),
+    shopSlug: stringArg({ description: 'Shop slug' }),
+    order: arg({
+      type: OrderEnum,
+      default: 'desc',
+    })
+  },
+  resolve: async (_parent, args, ctx) => {
+    let shopId = args.shopId
+    let shopSlug = args.shopSlug
+    if (!args.shopSlug && !shopId) {
+      shopId = ctx.getUser().shop?.id;
+      shopSlug = ctx.getUser().shop?.slug
+    }
+    const categories = await ctx.prisma.$transaction([
+      ctx.prisma.category.findMany({
+        skip: args.skip,
+        take: args.take,
+        orderBy: [{ createdAt: args.order, }],
+        where: {
+          products: {
+            some: {
+              shop: {
+                id: shopId || undefined,
+                slug: shopSlug || undefined
+              }
+            }
+          }
+        },
+        include: {
+          products: {
+            include: {
+              shop: true,
+              images: true
+            }
+          }
+        }
+      }),
+    ])
+    return {
+      items: categories[0],
+    }
+  }
+});
