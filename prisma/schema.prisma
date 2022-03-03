@@ -138,6 +138,7 @@ model Product {
   min   Int
 
   priority Int @default(autoincrement())
+  position Int @default(autoincrement())
 
   orderProducts OrderItem[]
 

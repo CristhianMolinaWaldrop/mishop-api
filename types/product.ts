@@ -18,6 +18,7 @@ export const Product = objectType({
     t.list.nonNull.jsonObject('variants')
     t.nonNull.float('price')
     t.nonNull.int('priority')
+    t.nonNull.int('position')
     t.float('promotionalPrice')
     t.nonNull.int('stock')
     t.nonNull.int('min')
@@ -41,6 +42,7 @@ export const ProductInput = inputObjectType({
     t.int('stock')
     t.int('min')
     t.int('priority')
+    t.int('position')
     t.boolean('visible')
   },
 })
@@ -99,8 +101,7 @@ export const GetProductsQuery = queryField('getProducts', {
         take: args.take,
         where,
         orderBy: [
-          { priority: args.order, },
-          { createdAt: args.order, },
+          {position: args.order},
         ],
         include: {
           images: true,
@@ -182,6 +183,7 @@ export const UpsertProductsMutation = mutationField('upsertProducts', {
           stock: p.stock || 0,
           variants: p.variants || [],
           priority: p.priority ?? undefined,
+          position: p.position ?? undefined,
           images: p.images?.length ? {
             createMany: {
               data: p.images.map(i => ({
@@ -348,7 +350,7 @@ export const GetCategoryQuery = queryField('getCategory', {
   }
 });
 
-export const GetCategoriesQuerys = queryField('getCategories', {
+export const GetCategoriesQuery = queryField('getCategories', {
   type: CategoryPage,
   args: {
     skip: intArg({ description: 'Skip the first N number of products', default: 0 }),
