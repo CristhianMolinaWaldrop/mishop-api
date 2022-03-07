@@ -15,6 +15,7 @@ export const Product = objectType({
     t.list.nonNull.field('images', { type: ImageAttachment })
     t.nonNull.boolean('hasVariants')
     t.nonNull.boolean('visible')
+    t.nonNull.boolean('deleted')
     t.list.nonNull.jsonObject('variants')
     t.nonNull.float('price')
     t.nonNull.int('priority')
@@ -44,6 +45,7 @@ export const ProductInput = inputObjectType({
     t.int('priority')
     t.int('position')
     t.boolean('visible')
+    t.boolean('deleted')
   },
 })
 
@@ -74,7 +76,8 @@ export const GetProductsQuery = queryField('getProducts', {
     skip: intArg({ description: 'Skip the first N number of products', default: 0 }),
     take: intArg({ description: 'Take +N products from the current position of cursor', default: 10 }),
     shopId: stringArg({ description: 'Shop id' }),
-    visible: booleanArg({ description: 'If is not defined, active and visible are no visible listed' }),
+    visible: booleanArg({ description: 'If is not defined, visible and no visible are listed' }),
+    deleted: booleanArg({ description: 'If is not defined, deleted and no deleted are listed' }),
     shopSlug: stringArg({ description: 'Shop slug' }),
     categoryId: intArg({ description: 'Category ID, If is not defined, all categories listed' }),
     categorySlug: stringArg({ description: 'Category slug, If is not defined, all categories listed' }),
@@ -97,6 +100,7 @@ export const GetProductsQuery = queryField('getProducts', {
         }
       },
       visible: args.visible ?? undefined,
+      deleted: args.deleted ?? undefined,
       shop: {
         id: shopId ?? undefined,
         slug: args.shopSlug ?? undefined,

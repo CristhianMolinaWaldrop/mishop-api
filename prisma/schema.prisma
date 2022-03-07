@@ -129,6 +129,7 @@ model Product {
 
   hasVariants Boolean
   visible     Boolean @default(true)
+  deleted     Boolean @default(false)
   variants    Json[]
 
   price            Float
