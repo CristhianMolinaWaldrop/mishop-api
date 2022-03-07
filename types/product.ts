@@ -76,6 +76,8 @@ export const GetProductsQuery = queryField('getProducts', {
     shopId: stringArg({ description: 'Shop id' }),
     visible: booleanArg({ description: 'If is not defined, active and visible are no visible listed' }),
     shopSlug: stringArg({ description: 'Shop slug' }),
+    categoryId: intArg({ description: 'Category ID, If is not defined, all categories listed' }),
+    categorySlug: stringArg({ description: 'Category slug, If is not defined, all categories listed' }),
     order: arg({
       type: OrderEnum,
       default: 'desc',
@@ -88,6 +90,12 @@ export const GetProductsQuery = queryField('getProducts', {
     }
     const where = {
       shopId,
+      categories : {
+        some: {
+          id: args.categoryId ?? undefined,
+          slug: args.categorySlug ?? undefined
+        }
+      },
       visible: args.visible ?? undefined,
       shop: {
         id: shopId ?? undefined,
