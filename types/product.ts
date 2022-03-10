@@ -93,12 +93,12 @@ export const GetProductsQuery = queryField('getProducts', {
     }
     const where = {
       shopId,
-      categories : {
+      categories : (args.categoryId || args.categorySlug) ? {
         some: {
           id: args.categoryId ?? undefined,
           slug: args.categorySlug ?? undefined
         }
-      },
+      } : undefined,
       visible: args.visible ?? undefined,
       deleted: args.deleted ?? undefined,
       shop: {
