@@ -255,6 +255,44 @@ export const UpsertProductsMutation = mutationField('upsertProducts', {
       updated = await toUpdate.map(async p => {
         if(p.categories) {
 
+          let productWithUpdate = await ctx.prisma.product.findUnique({
+            where: {
+              id: p.id
+            },
+            include: {
+              categories: true,
+            },
+          });
+          let categoriesToDisconnect = productWithUpdate.categories.map(category => {
+            return {
+              id: category.id
+            }
+          });
+          let productWithCategories = await ctx.prisma.product.update({
+            where: {
+              id: p.id,
+            },
+            include: {
+              images: true,
+              categories: true,
+              shop: {
+                include: {
+                  deliveryMethods: true,
+                  logo: true,
+                }
+              }
+            },
+            data: {
+              categories: {
+                disconnect: categoriesToDisconnect
+              },
+            }
+          });
+          
+          if (p.categories.length === 0) {
+            return productWithCategories;
+          }
+
           let categoryUniquesPromise = p.categories?.map( async category => {
             let valueCategory = ctx.prisma.category.findUnique({
               where: {
