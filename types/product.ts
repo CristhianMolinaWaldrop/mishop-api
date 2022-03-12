@@ -52,7 +52,7 @@ export const ProductInput = inputObjectType({
 export const Category = objectType({
   name: 'Category',
   definition(t) {
-    t.nonNull.string('id')
+    t.nonNull.int('id')
     t.nonEmptyString('name')
     t.nonEmptyString('slug')
     t.list.field('products', { type: Product})
