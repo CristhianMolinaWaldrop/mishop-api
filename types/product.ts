@@ -426,6 +426,7 @@ export const GetCategoriesQuery = queryField('getCategories', {
         where: {
           products: {
             some: {
+              visible: true,
               shop: {
                 id: shopId || undefined,
                 slug: shopSlug || undefined
