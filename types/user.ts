@@ -28,6 +28,8 @@ export const UserRegisterInput = inputObjectType({
     t.nonNull.nonEmptyString('password')
     t.nonNull.nonEmptyString('name')
     t.nonEmptyString('instagram')
+    t.nonEmptyString('facebook')
+    t.nonEmptyString('tiktok')
     t.nonEmptyString('shopName')
     t.nonEmptyString('shopSlug')
     t.string('shopDescription')

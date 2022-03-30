@@ -23,6 +23,8 @@ export const registerUser = async (args: MutationArgs['registerUser'], ctx: Cont
           create: {
             slug: args.data.shopSlug,
             instagram: args.data.instagram,
+            tiktok: args.data.tiktok,
+            facebook: args.data.facebook,
             name: args.data.shopName,
             paymentMethodsMetadata: Object.fromEntries(Object.entries(PaymentMethods).filter(([key]) => key !== 'null')),
             phoneNumber: args.data.phoneNumber,
@@ -56,7 +58,7 @@ export const registerUser = async (args: MutationArgs['registerUser'], ctx: Cont
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // The .code property can be accessed in a type-safe manner
       if (error.code === 'P2002') {
-        throw new Error('Email or instagram are taken')
+        throw new Error('Email already exists')
       }
     } else {
       throw new Error(error.message)

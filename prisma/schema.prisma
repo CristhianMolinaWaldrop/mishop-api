@@ -78,7 +78,7 @@ model ShopAccount {
   logo   ImageAttachment? @relation(fields: [logoId], references: [id], onDelete: Cascade, name: "shop_logo")
   logoId String?          @unique
 
-  instagram   String? @unique
+  instagram   String?
   tiktok      String?
   facebook    String?
   hasWhatsapp Boolean @default(false)
