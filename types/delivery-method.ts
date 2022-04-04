@@ -1,6 +1,6 @@
 import { getDeliveryMethod, getDeliveryMethods, upsertDeliveryMethods } from '@/resolvers/delivery-method'
 import { booleanArg, inputObjectType, list, mutationField, nonNull, objectType, queryField, stringArg } from 'nexus'
-import { PaymentMethodEnum } from './common'
+import { DeliveryMethodTypeEnum, PaymentMethodEnum } from './common'
 
 export const DeliveryMethod = objectType({
   name: 'DeliveryMethod',
@@ -12,6 +12,7 @@ export const DeliveryMethod = objectType({
     t.nonNull.boolean('admitCash')
     t.nonNull.boolean('requestDirection')
     t.nonNull.list.field('specificPaymentMethods', { type: PaymentMethodEnum })
+    t.nonNull.field('type', { type: DeliveryMethodTypeEnum })
     t.nonNull.boolean('active')
     t.nonNull.boolean('deleted')
   },
@@ -27,6 +28,7 @@ export const DeliveryMethodInput = inputObjectType({
     t.boolean('admitCash')
     t.boolean('requestDirection')
     t.list.field('specificPaymentMethods', { type: PaymentMethodEnum })
+    t.field('type', { type: DeliveryMethodTypeEnum })
     t.boolean('active')
     t.boolean('deleted')
   },

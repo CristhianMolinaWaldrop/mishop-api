@@ -1,4 +1,4 @@
-import { PaymentMethods } from '@/lib/utils'
+import { DeliveryMethodType, PaymentMethods } from '@/lib/utils'
 import { enumType, inputObjectType, objectType } from 'nexus'
 
 export const ImageAttachment = objectType({
@@ -28,4 +28,9 @@ export const PaymentMethodEnum = enumType({
 export const OrderEnum = enumType({
   name: 'OrderEnum',
   members: ['asc', 'desc']
+})
+
+export const DeliveryMethodTypeEnum = enumType({
+  name: 'DeliveryMethodTypeEnum',
+  members: Object.keys(DeliveryMethodType).filter(pm => pm !== 'null')
 })

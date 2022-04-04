@@ -11,6 +11,11 @@ export enum PaymentMethods {
   POS = null,
 }
 
+export enum DeliveryMethodType {
+  Delivery = null,
+  Pickup = null
+}
+
 export const pageObjectType = (name: string, type: GetGen<'allOutputTypes', string> | AllNexusOutputTypeDefs | NexusMetaType) => objectType({
   name,
   definition(t) {

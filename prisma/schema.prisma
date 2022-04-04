@@ -163,6 +163,11 @@ enum OrderStatus {
   DONE
 }
 
+enum DeliveryMethodType {
+  Delivery
+  Pickup
+}
+
 model Customer {
   id String @id @default(cuid())
 
@@ -192,6 +197,7 @@ model DeliveryMethod {
   requestDirection       Boolean             @default(false)
   specificPaymentMethods PaymentMethodType[]
   orders                 Order[]
+  type                   DeliveryMethodType
 
   @@map("delivery_method")
 }

@@ -47,6 +47,7 @@ export const upsertDeliveryMethods = async (args: MutationArgs['upsertDeliveryMe
         specificPaymentMethods: d.specificPaymentMethods ? [...new Set(d.specificPaymentMethods)] : [],
         price: d.price || 0,
         shopId: shop.id,
+        type: d.type || 'Delivery'
       }
     })))
   }
